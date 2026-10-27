@@ -51,35 +51,7 @@ public class Expedition {
     }
 
     public String genererFacture() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("==============================================\n");
-        sb.append("              FACTURE TRANSFRET\n");
-        sb.append("==============================================\n");
-        sb.append("Facture n° F-").append(id).append("\n");
-        sb.append("Date : ").append(Utils.formaterDate(new Date())).append("\n");
-        sb.append("Client : ").append(client.getNom()).append("\n");
-        if (client.getType() == TypeClient.ENTREPRISE) {
-            sb.append("SIRET : ").append(client.getSiret()).append("\n");
-        }
-        sb.append("Adresse : ").append(client.getAdresse()).append("\n");
-        sb.append("----------------------------------------------\n");
-        sb.append("Trajet : ").append(villeDepart).append(" -> ").append(villeArrivee).append(" (").append(distance).append(" km)\n");
-        sb.append("Mode : ").append(mode).append(urgent ? " (URGENT)" : "").append("\n");
-        sb.append("Colis :\n");
-        for (Colis c : colis) {
-            sb.append("  - ").append(c.getDescription()).append(" : ").append(c.getPoids()).append(" kg [").append(c.getLibelleType()).append("]\n");
-        }
-        sb.append("----------------------------------------------\n");
-        if (statut == StatutExpedition.ANNULEE) {
-            sb.append("EXPEDITION ANNULEE\n");
-            sb.append("Frais d'annulation TTC : ").append(String.format("%.2f", fraisAnnulation)).append(" €\n");
-        } else {
-            sb.append("Total HT  : ").append(String.format("%.2f", prixHT)).append(" €\n");
-            sb.append("TVA 20%   : ").append(String.format("%.2f", prixTTC - prixHT)).append(" €\n");
-            sb.append("Total TTC : ").append(String.format("%.2f", prixTTC)).append(" €\n");
-        }
-        sb.append("==============================================\n");
-        return sb.toString();
+        return new GenerateurFacture().genererFacture(this);
     }
 
     public String getId() {
