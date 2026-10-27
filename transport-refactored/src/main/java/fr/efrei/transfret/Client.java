@@ -8,15 +8,15 @@ public class Client {
     private String email;
     private String telephone;
     private String adresse;
-    private String type; // "PARTICULIER", "ENTREPRISE" ou "PREMIUM"
-    private String siret; // seulement pour les entreprises (null sinon)
+    private TypeClient type;
+    private String siret;
     private int nbExpeditions;
     private Date dateInscription;
 
     public Client() {
     }
 
-    public Client(String nom, String email, String telephone, String adresse, String type, String siret) {
+    public Client(String nom, String email, String telephone, String adresse, TypeClient type, String siret) {
         this.nom = nom;
         this.email = email;
         this.telephone = telephone;
@@ -25,6 +25,10 @@ public class Client {
         this.siret = siret;
         this.nbExpeditions = 0;
         this.dateInscription = new Date();
+    }
+
+    public Client(String nom, String email, String telephone, String adresse, String typeStr, String siret) {
+        this(nom, email, telephone, adresse, TypeClient.depuisNom(typeStr), siret);
     }
 
     public String getNom() {
@@ -59,11 +63,11 @@ public class Client {
         this.adresse = adresse;
     }
 
-    public String getType() {
+    public TypeClient getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(TypeClient type) {
         this.type = type;
     }
 
@@ -87,8 +91,8 @@ public class Client {
         return dateInscription;
     }
 
+    @Override
     public String toString() {
         return nom + " (" + type + ")";
     }
 }
-

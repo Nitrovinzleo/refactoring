@@ -8,8 +8,7 @@ public class CamionFrigorifique extends Camion {
 
     @Override
     public void charger(Colis colis) {
-        // un camion frigo ne prend QUE des colis réfrigérés
-        if (colis.getType() != 3) {
+        if (colis.getType() != TypeMarchandise.REFRIGERE) {
             throw new IllegalArgumentException("Un camion frigorifique ne transporte que des produits réfrigérés");
         }
         super.charger(colis);
@@ -20,4 +19,3 @@ public class CamionFrigorifique extends Camion {
         System.out.println("Réfrigération activée à " + temperature + "°C sur " + immatriculation);
     }
 }
-

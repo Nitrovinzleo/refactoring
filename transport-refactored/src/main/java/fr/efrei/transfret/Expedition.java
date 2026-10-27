@@ -6,45 +6,46 @@ import java.util.List;
 
 public class Expedition {
 
+    public static final double TAUX_TVA = 0.20;
+
     private String id;
     private Client client;
-    private List<Colis> colis = new ArrayList<Colis>();
+    private List<Colis> colis = new ArrayList<>();
     private String villeDepart;
     private String villeArrivee;
     private int distance;
-    private String mode;
+    private ModeTransport mode;
     private boolean urgent;
     private boolean assurance;
-    private String statut;
+    private StatutExpedition statut;
     private Date dateCreation;
     private Date dateLivraisonPrevue;
     private Vehicule vehicule;
     private double prixHT;
     private double prixTTC;
     private double fraisAnnulation;
-    private List<String> historique = new ArrayList<String>();
+    private List<String> historique = new ArrayList<>();
 
     public double getPoidsTotal() {
         double total = 0;
-        for (int i = 0; i < colis.size(); i++) {
-            total = total + colis.get(i).getPoids();
+        for (Colis c : colis) {
+            total += c.getPoids();
         }
         return total;
     }
 
     public double getVolumeTotal() {
         double total = 0;
-        for (int i = 0; i < colis.size(); i++) {
-            Colis c = colis.get(i);
-            total = total + (c.getLongueur() * c.getLargeur() * c.getHauteur()) / 1000000;
+        for (Colis c : colis) {
+            total += c.getVolume();
         }
         return total;
     }
 
     public double getValeurTotale() {
         double total = 0;
-        for (int i = 0; i < colis.size(); i++) {
-            total = total + colis.get(i).getValeurDeclaree();
+        for (Colis c : colis) {
+            total += c.getValeurDeclaree();
         }
         return total;
     }
@@ -54,28 +55,28 @@ public class Expedition {
         sb.append("==============================================\n");
         sb.append("              FACTURE TRANSFRET\n");
         sb.append("==============================================\n");
-        sb.append("Facture n° F-" + id + "\n");
-        sb.append("Date : " + Utils.formaterDate(new Date()) + "\n");
-        sb.append("Client : " + client.getNom() + "\n");
-        if (client.getType().equals("ENTREPRISE")) {
-            sb.append("SIRET : " + client.getSiret() + "\n");
+        sb.append("Facture n° F-").append(id).append("\n");
+        sb.append("Date : ").append(Utils.formaterDate(new Date())).append("\n");
+        sb.append("Client : ").append(client.getNom()).append("\n");
+        if (client.getType() == TypeClient.ENTREPRISE) {
+            sb.append("SIRET : ").append(client.getSiret()).append("\n");
         }
-        sb.append("Adresse : " + client.getAdresse() + "\n");
+        sb.append("Adresse : ").append(client.getAdresse()).append("\n");
         sb.append("----------------------------------------------\n");
-        sb.append("Trajet : " + villeDepart + " -> " + villeArrivee + " (" + distance + " km)\n");
-        sb.append("Mode : " + mode + (urgent ? " (URGENT)" : "") + "\n");
+        sb.append("Trajet : ").append(villeDepart).append(" -> ").append(villeArrivee).append(" (").append(distance).append(" km)\n");
+        sb.append("Mode : ").append(mode).append(urgent ? " (URGENT)" : "").append("\n");
         sb.append("Colis :\n");
         for (Colis c : colis) {
-            sb.append("  - " + c.getDescription() + " : " + c.getPoids() + " kg [" + c.getLibelleType() + "]\n");
+            sb.append("  - ").append(c.getDescription()).append(" : ").append(c.getPoids()).append(" kg [").append(c.getLibelleType()).append("]\n");
         }
         sb.append("----------------------------------------------\n");
-        if (statut.equals("ANNULEE")) {
+        if (statut == StatutExpedition.ANNULEE) {
             sb.append("EXPEDITION ANNULEE\n");
-            sb.append("Frais d'annulation TTC : " + String.format("%.2f", fraisAnnulation) + " €\n");
+            sb.append("Frais d'annulation TTC : ").append(String.format("%.2f", fraisAnnulation)).append(" €\n");
         } else {
-            sb.append("Total HT  : " + String.format("%.2f", prixHT) + " €\n");
-            sb.append("TVA 20%   : " + String.format("%.2f", prixTTC - prixHT) + " €\n");
-            sb.append("Total TTC : " + String.format("%.2f", prixTTC) + " €\n");
+            sb.append("Total HT  : ").append(String.format("%.2f", prixHT)).append(" €\n");
+            sb.append("TVA 20%   : ").append(String.format("%.2f", prixTTC - prixHT)).append(" €\n");
+            sb.append("Total TTC : ").append(String.format("%.2f", prixTTC)).append(" €\n");
         }
         sb.append("==============================================\n");
         return sb.toString();
@@ -129,12 +130,16 @@ public class Expedition {
         this.distance = distance;
     }
 
-    public String getMode() {
+    public ModeTransport getMode() {
         return mode;
     }
 
-    public void setMode(String mode) {
+    public void setMode(ModeTransport mode) {
         this.mode = mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = ModeTransport.depuisNom(mode);
     }
 
     public boolean isUrgent() {
@@ -153,12 +158,16 @@ public class Expedition {
         this.assurance = assurance;
     }
 
-    public String getStatut() {
+    public StatutExpedition getStatut() {
         return statut;
     }
 
-    public void setStatut(String statut) {
+    public void setStatut(StatutExpedition statut) {
         this.statut = statut;
+    }
+
+    public void setStatut(String statut) {
+        this.statut = StatutExpedition.depuisNom(statut);
     }
 
     public Date getDateCreation() {
@@ -213,4 +222,3 @@ public class Expedition {
         return historique;
     }
 }
-
