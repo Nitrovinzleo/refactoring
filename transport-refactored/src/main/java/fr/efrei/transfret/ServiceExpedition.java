@@ -10,14 +10,28 @@ public class ServiceExpedition {
     public static final double TAUX_TVA = 1.20;
     public static final double TAUX_FRAIS_ANNULATION = 0.50;
 
-    public static int compteur = 0;
+    private int compteur = 0;
 
-    private final Database db = Database.getInstance();
-    private final CalculateurPrix calculateur = new CalculateurPrix();
-    private final AffectationVehicule affectation = new AffectationVehicule();
-    private final ValidateurExpedition validateur = new ValidateurExpedition();
-    private final EstimateurDelai estimateurDelai = new EstimateurDelai();
-    private final Notificateur notificateur = new Notificateur();
+    private final ExpeditionRepository expeditionRepository;
+    private final CalculateurPrix calculateur;
+    private final AffectationVehicule affectation;
+    private final ValidateurExpedition validateur;
+    private final EstimateurDelai estimateurDelai;
+    private final Notificateur notificateur;
+
+    public ServiceExpedition(ExpeditionRepository expeditionRepository,
+                             CalculateurPrix calculateur,
+                             AffectationVehicule affectation,
+                             ValidateurExpedition validateur,
+                             EstimateurDelai estimateurDelai,
+                             Notificateur notificateur) {
+        this.expeditionRepository = expeditionRepository;
+        this.calculateur = calculateur;
+        this.affectation = affectation;
+        this.validateur = validateur;
+        this.estimateurDelai = estimateurDelai;
+        this.notificateur = notificateur;
+    }
 
     public Expedition creerExpedition(Client client, List<Colis> colis, String villeDepart, String villeArrivee, ModeTransport mode, boolean urgent, boolean assurance) {
         int distance = Utils.getDistance(villeDepart, villeArrivee);
@@ -55,7 +69,7 @@ public class ServiceExpedition {
         cal.add(Calendar.DAY_OF_MONTH, estimateurDelai.calculerDelai(distance, mode, urgent));
         e.setDateLivraisonPrevue(cal.getTime());
 
-        db.sauvegarderExpedition(e);
+        expeditionRepository.sauvegarder(e);
         notificateur.notifier(client, "Confirmation de votre expédition " + e.getId(),
                 "Votre expédition " + villeDepart + " -> " + villeArrivee + " (" + mode + ") a été enregistrée. Montant : " + e.getPrixTTC() + " € TTC.",
                 "TransFret : expédition " + e.getId() + " créée, livraison prévue le " + Utils.formaterDate(e.getDateLivraisonPrevue()));
@@ -88,7 +102,7 @@ public class ServiceExpedition {
     }
 
     public boolean demarrerExpedition(String id) {
-        Expedition e = db.trouverExpedition(id);
+        Expedition e = expeditionRepository.trouverParId(id).orElse(null);
         if (e == null || e.getStatut() != StatutExpedition.CREEE) {
             System.out.println("ERREUR : impossible de démarrer l'expédition " + id);
             return false;
@@ -114,7 +128,7 @@ public class ServiceExpedition {
                 break;
             }
         }
-        db.mettreAJourStatut(e);
+        expeditionRepository.mettreAJourStatut(e);
         notificateur.notifier(e.getClient(), "Votre expédition " + e.getId() + " est en route",
                 "Votre expédition a quitté " + e.getVilleDepart() + ".",
                 "TransFret : expédition " + e.getId() + " partie de " + e.getVilleDepart());
@@ -122,14 +136,14 @@ public class ServiceExpedition {
     }
 
     public boolean livrerExpedition(String id) {
-        Expedition e = db.trouverExpedition(id);
+        Expedition e = expeditionRepository.trouverParId(id).orElse(null);
         if (e == null || e.getStatut() != StatutExpedition.EN_COURS) {
             System.out.println("ERREUR : impossible de livrer l'expédition " + id);
             return false;
         }
         e.setStatut(StatutExpedition.LIVREE);
         libererVehicule(e);
-        db.mettreAJourStatut(e);
+        expeditionRepository.mettreAJourStatut(e);
         notificateur.notifier(e.getClient(), "Votre expédition " + e.getId() + " est livrée",
                 "Votre expédition est arrivée à " + e.getVilleArrivee() + ". Merci de votre confiance.",
                 "TransFret : expédition " + e.getId() + " livrée à " + e.getVilleArrivee());
@@ -137,7 +151,7 @@ public class ServiceExpedition {
     }
 
     public boolean annulerExpedition(String id) {
-        Expedition e = db.trouverExpedition(id);
+        Expedition e = expeditionRepository.trouverParId(id).orElse(null);
         if (e == null || e.getStatut() == StatutExpedition.LIVREE || e.getStatut() == StatutExpedition.ANNULEE) {
             System.out.println("ERREUR : impossible d'annuler l'expédition " + id);
             return false;
@@ -147,7 +161,7 @@ public class ServiceExpedition {
         }
         e.setStatut(StatutExpedition.ANNULEE);
         libererVehicule(e);
-        db.mettreAJourStatut(e);
+        expeditionRepository.mettreAJourStatut(e);
         notificateur.notifier(e.getClient(), "Annulation de votre expédition " + e.getId(),
                 "Votre expédition a été annulée. Frais d'annulation : " + e.getFraisAnnulation() + " €",
                 "TransFret : expédition " + e.getId() + " annulée");

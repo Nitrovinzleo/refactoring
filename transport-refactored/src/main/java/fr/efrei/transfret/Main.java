@@ -6,9 +6,20 @@ import java.util.List;
 public class Main {
 
     public static void main(String[] args) {
-        Flotte.initialiser();
-        ServiceClient serviceClient = new ServiceClient();
-        ServiceExpedition serviceExpedition = new ServiceExpedition();
+        Flotte flotte = new Flotte();
+        ClientRepository clientRepository = new MemoireClientRepository();
+        ExpeditionRepository expeditionRepository = new MemoireExpeditionRepository();
+        ConsoleEmailService emailService = new ConsoleEmailService();
+        ConsoleSmsService smsService = new ConsoleSmsService();
+
+        Notificateur notificateur = new Notificateur(emailService, smsService);
+        CalculateurPrix calculateur = new CalculateurPrix();
+        AffectationVehicule affectation = new AffectationVehicule(flotte);
+        ValidateurExpedition validateurExpedition = new ValidateurExpedition();
+        EstimateurDelai estimateurDelai = new EstimateurDelai();
+
+        ServiceClient serviceClient = new ServiceClient(clientRepository, emailService);
+        ServiceExpedition serviceExpedition = new ServiceExpedition(expeditionRepository, calculateur, affectation, validateurExpedition, estimateurDelai, notificateur);
 
         System.out.println("\n----- Clients -----");
         Client dupont = serviceClient.creerClient("Jean Dupont", "jean.dupont@mail.fr", "0601020304", "12 rue de la Paix, 75002 Paris", TypeClient.PARTICULIER, null);

@@ -5,7 +5,7 @@ import java.util.Date;
 
 public class Utils {
 
-    public static SimpleDateFormat FORMAT_DATE = new SimpleDateFormat("dd/MM/yyyy");
+    public static final SimpleDateFormat FORMAT_DATE = new SimpleDateFormat("dd/MM/yyyy");
 
     public static double arrondir(double valeur) {
         return Math.round(valeur * 100.0) / 100.0;

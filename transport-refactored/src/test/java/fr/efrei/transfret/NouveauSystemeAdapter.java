@@ -21,20 +21,29 @@ import java.util.stream.Collectors;
 
 public class NouveauSystemeAdapter implements SystemeTransport {
 
+    private ClientRepository clientRepository;
+    private ExpeditionRepository expeditionRepository;
+    private ConsoleEmailService consoleEmailService;
+    private ConsoleSmsService consoleSmsService;
     private ServiceClient serviceClient;
     private ServiceExpedition serviceExpedition;
 
     @Override
     public void reinitialiser() {
-        Database.getInstance();
-        Database.expeditions.clear();
-        Database.clients.clear();
-        EmailService.journal.clear();
-        SmsService.journal.clear();
-        ServiceExpedition.compteur = 0;
-        Flotte.initialiser();
-        serviceClient = new ServiceClient();
-        serviceExpedition = new ServiceExpedition();
+        Flotte flotte = new Flotte();
+        clientRepository = new MemoireClientRepository();
+        expeditionRepository = new MemoireExpeditionRepository();
+        consoleEmailService = new ConsoleEmailService();
+        consoleSmsService = new ConsoleSmsService();
+
+        Notificateur notificateur = new Notificateur(consoleEmailService, consoleSmsService);
+        CalculateurPrix calculateur = new CalculateurPrix();
+        AffectationVehicule affectation = new AffectationVehicule(flotte);
+        ValidateurExpedition validateurExpedition = new ValidateurExpedition();
+        EstimateurDelai estimateurDelai = new EstimateurDelai();
+
+        serviceClient = new ServiceClient(clientRepository, consoleEmailService);
+        serviceExpedition = new ServiceExpedition(expeditionRepository, calculateur, affectation, validateurExpedition, estimateurDelai, notificateur);
     }
 
     @Override
@@ -46,7 +55,7 @@ public class NouveauSystemeAdapter implements SystemeTransport {
 
     @Override
     public Optional<String> creerExpedition(DemandeExpedition d) {
-        Client client = Database.clients.get(d.refClient());
+        Client client = clientRepository.trouverParEmail(d.refClient()).orElse(null);
         ModeTransport mode = ModeTransport.valueOf(d.mode().name());
         Expedition expedition = serviceExpedition.creerExpedition(client, versColis(d.colis()), d.villeDepart(),
                 d.villeArrivee(), mode, d.urgent(), d.assurance());
@@ -55,7 +64,7 @@ public class NouveauSystemeAdapter implements SystemeTransport {
 
     @Override
     public Optional<EtatExpedition> consulter(String id) {
-        Expedition e = Database.expeditions.get(id);
+        Expedition e = expeditionRepository.trouverParId(id).orElse(null);
         if (e == null) {
             return Optional.empty();
         }
@@ -90,16 +99,16 @@ public class NouveauSystemeAdapter implements SystemeTransport {
 
     @Override
     public Optional<String> facture(String id) {
-        return Optional.ofNullable(Database.expeditions.get(id)).map(Expedition::genererFacture);
+        return expeditionRepository.trouverParId(id).map(Expedition::genererFacture);
     }
 
     @Override
     public List<Notification> notifications() {
         List<Notification> notifications = new ArrayList<>();
-        for (String[] email : EmailService.journal) {
+        for (String[] email : consoleEmailService.getJournal()) {
             notifications.add(new Notification(Canal.EMAIL, email[0], email[1]));
         }
-        for (String[] sms : SmsService.journal) {
+        for (String[] sms : consoleSmsService.getJournal()) {
             notifications.add(new Notification(Canal.SMS, sms[0], sms[1]));
         }
         return notifications;

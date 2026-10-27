@@ -4,6 +4,12 @@ import java.util.List;
 
 public class AffectationVehicule {
 
+    private final Flotte flotte;
+
+    public AffectationVehicule(Flotte flotte) {
+        this.flotte = flotte;
+    }
+
     public Vehicule trouverVehicule(List<Colis> colis, ModeTransport mode) {
         double poids = 0;
         boolean dangereux = false;
@@ -17,7 +23,7 @@ public class AffectationVehicule {
                 refrigere = true;
             }
         }
-        for (Vehicule v : Flotte.vehicules) {
+        for (Vehicule v : flotte.getVehicules()) {
             if (!v.estDisponible()) {
                 continue;
             }
