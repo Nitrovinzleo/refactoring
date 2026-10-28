@@ -1,8 +1,7 @@
 package fr.efrei.transfret;
 
-/**
- * Interface commune à tous les véhicules de la flotte.
- */
+import java.util.List;
+
 public interface IVehicule {
 
     String getImmatriculation();
@@ -19,16 +18,9 @@ public interface IVehicule {
 
     void decharger(Colis colis);
 
-    void rouler(int km);
-
-    void naviguer(int milesNautiques);
-
-    void voler(int altitude);
-
-    void activerRefrigeration(double temperature);
-
-    boolean peutTransporterMatieresDangereuses();
-
     void faireLePlein();
-}
 
+    void partir(int distanceKm);
+
+    boolean peutPrendreEnCharge(List<Colis> colis, ModeTransport mode);
+}

@@ -1,39 +1,35 @@
 package fr.efrei.transfret;
 
+import java.util.List;
+
 public class Bateau extends Vehicule {
 
-    private boolean conteneursRefrigeres;
+    private final boolean conteneursRefrigeres;
 
     public Bateau(String immatriculation, double capaciteMax, boolean conteneursRefrigeres) {
         super(immatriculation, capaciteMax);
         this.conteneursRefrigeres = conteneursRefrigeres;
     }
 
-    public void rouler(int km) {
-        throw new UnsupportedOperationException("Un bateau ne roule pas");
-    }
-
-    public void naviguer(int milesNautiques) {
-        System.out.println("Le navire " + immatriculation + " navigue sur " + milesNautiques + " milles nautiques");
-    }
-
-    public void voler(int altitude) {
-        throw new UnsupportedOperationException("Un bateau ne vole pas");
-    }
-
-    public void activerRefrigeration(double temperature) {
-        if (!conteneursRefrigeres) {
-            throw new UnsupportedOperationException("Pas de conteneurs frigorifiques sur ce navire");
-        }
-        System.out.println("Conteneurs frigorifiques réglés à " + temperature + "°C");
-    }
-
-    public boolean peutTransporterMatieresDangereuses() {
-        return true;
-    }
-
     public boolean aConteneursRefrigeres() {
         return conteneursRefrigeres;
     }
-}
 
+    @Override
+    public boolean peutPrendreEnCharge(List<Colis> colis, ModeTransport mode) {
+        if (mode != ModeTransport.MER) {
+            return false;
+        }
+        boolean aRefrigere = colis.stream().anyMatch(c -> c.getType() == TypeMarchandise.REFRIGERE);
+        if (aRefrigere && !conteneursRefrigeres) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void partir(int distanceKm) {
+        int milesNautiques = (int) (distanceKm / 1.852);
+        System.out.println("Le navire " + immatriculation + " navigue sur " + milesNautiques + " milles nautiques");
+    }
+}
