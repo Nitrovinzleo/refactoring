@@ -19,7 +19,7 @@ public class Utils {
     }
 
     public static String formaterPrix(double prix) {
-        return String.format("%.2f €", prix);
+        return String.format("%.2f â‚¬", prix);
     }
 
     public static boolean emailValide(String email) {

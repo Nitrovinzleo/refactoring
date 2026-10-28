@@ -35,8 +35,8 @@ public class ValidateurExpedition {
             System.out.println("ERREUR : le transport réfrigéré n'est possible que par route ou par mer");
             return false;
         }
-        if (urgent && mode == ModeTransport.MER) {
-            System.out.println("ERREUR : pas d'option urgente pour le transport maritime");
+        if (urgent && (mode == ModeTransport.MER || mode == ModeTransport.FLUVIAL)) {
+            System.out.println("ERREUR : pas d'option urgente pour ce transport");
             return false;
         }
         if (distance == -1) {

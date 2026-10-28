@@ -4,7 +4,8 @@ public enum ModeTransport {
     ROUTE,
     RAIL,
     MER,
-    AIR;
+    AIR,
+    FLUVIAL;
 
     public static ModeTransport depuisNom(String nom) {
         if (nom == null) {

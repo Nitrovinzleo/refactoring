@@ -25,6 +25,8 @@ public class EstimateurDelai {
             }
         } else if (mode == ModeTransport.MER) {
             jours = (int) Math.ceil(distance / CADENCE_KM_JOUR_MER) + 2;
+        } else if (mode == ModeTransport.FLUVIAL) {
+            jours = (int) Math.ceil(distance / 360.0) + 1;
         } else if (mode == ModeTransport.AIR) {
             jours = 1;
             if (distance > SEUIL_DISTANCE_AIR) {

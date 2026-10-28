@@ -20,12 +20,21 @@ public class CalculateurPrix {
         this.assembleur = assembleur;
     }
 
+    public void setActiverHorsGabarit(boolean actif) {
+        this.assembleur.setActiverHorsGabarit(actif);
+    }
+
+    public boolean isActiverHorsGabarit() {
+        return this.assembleur.isActiverHorsGabarit();
+    }
+
     public static Map<ModeTransport, TarifTransport> creerTarifsParDefaut() {
         Map<ModeTransport, TarifTransport> map = new EnumMap<>(ModeTransport.class);
         map.put(ModeTransport.ROUTE, new TarifRoute());
         map.put(ModeTransport.RAIL, new TarifRail());
         map.put(ModeTransport.MER, new TarifMer());
         map.put(ModeTransport.AIR, new TarifAir());
+        map.put(ModeTransport.FLUVIAL, new TarifFluvial());
         return map;
     }
 
