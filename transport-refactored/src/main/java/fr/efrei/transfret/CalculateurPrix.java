@@ -6,24 +6,18 @@ import java.util.Map;
 
 public class CalculateurPrix {
 
-    public static final double COEFF_FRAGILE = 1.15;
-    public static final double COEFF_DANGEREUX = 1.30;
-    public static final double COEFF_REFRIGERE = 1.20;
-    public static final double COEFF_URGENCE = 1.50;
-
-    public static final double TAUX_ASSURANCE = 0.02;
-    public static final double MINIMUM_ASSURANCE = 15.0;
-
-    private final Map<ModeTransport, TarifTransport> tarifs;
-    private final Map<TypeClient, PolitiqueRemise> remises;
+    private final AssembleurCalculateurPrix assembleur;
 
     public CalculateurPrix() {
         this(creerTarifsParDefaut(), creerRemisesParDefaut());
     }
 
     public CalculateurPrix(Map<ModeTransport, TarifTransport> tarifs, Map<TypeClient, PolitiqueRemise> remises) {
-        this.tarifs = tarifs;
-        this.remises = remises;
+        this(new AssembleurCalculateurPrix(tarifs, remises));
+    }
+
+    public CalculateurPrix(AssembleurCalculateurPrix assembleur) {
+        this.assembleur = assembleur;
     }
 
     public static Map<ModeTransport, TarifTransport> creerTarifsParDefaut() {
@@ -44,56 +38,10 @@ public class CalculateurPrix {
     }
 
     public double calculerPrixHT(List<Colis> colis, int distance, ModeTransport mode, boolean urgent, boolean assurance, TypeClient typeClient) {
-        TarifTransport tarif = tarifs.get(mode);
-        if (tarif == null) {
-            throw new IllegalArgumentException("Mode inconnu : " + mode);
-        }
-        PolitiqueRemise remise = remises.getOrDefault(typeClient, new RemiseParticulier());
-
-        double prix = tarif.calculerTarifBase(colis, distance);
-
-        boolean fragile = false;
-        boolean dangereux = false;
-        boolean refrigere = false;
-        double valeur = 0;
-
-        for (Colis c : colis) {
-            valeur += c.getValeurDeclaree();
-            if (c.getType() == TypeMarchandise.FRAGILE) {
-                fragile = true;
-            }
-            if (c.getType() == TypeMarchandise.DANGEREUX) {
-                dangereux = true;
-            }
-            if (c.getType() == TypeMarchandise.REFRIGERE) {
-                refrigere = true;
-            }
-        }
-
-        if (fragile) {
-            prix *= COEFF_FRAGILE;
-        }
-        if (dangereux) {
-            prix *= COEFF_DANGEREUX;
-        }
-        if (refrigere) {
-            prix *= COEFF_REFRIGERE;
-        }
-        if (urgent) {
-            prix *= COEFF_URGENCE;
-        }
-
-        prix = remise.appliquerRemise(prix);
-
-        if (assurance) {
-            double montantAssurance = valeur * TAUX_ASSURANCE;
-            if (montantAssurance < MINIMUM_ASSURANCE) {
-                montantAssurance = MINIMUM_ASSURANCE;
-            }
-            prix += montantAssurance;
-        }
-
-        return Utils.arrondir(prix);
+        ContexteCalculPrix contexte = new ContexteCalculPrix(colis, distance, mode, urgent, assurance, typeClient);
+        CalculPrix chaine = assembleur.assembler(contexte);
+        double total = chaine.calculer(contexte);
+        return Utils.arrondir(total);
     }
 
     public double calculerPrixHT(List<Colis> colis, int distance, String mode, boolean urgent, boolean assurance, String typeClient) {
