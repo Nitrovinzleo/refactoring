@@ -123,3 +123,35 @@ CREEE ──démarrer──▶ EN_COURS ──livrer──▶ LIVREE
   └──annuler──▶ ANNULEE ◀──annuler (frais : 50 % du TTC)
 ```
 Chaque étape envoie un email au client, plus un SMS pour les clients PREMIUM.
+
+
+## Version Refactorisée (`transport-refactored`)
+
+### Architecture & Patrons de conception appliqués
+
+1. **Responsabilité Unique (SRP)** : Découpage de l'ancienne classe monolithique en services spécialisés :
+   - `ValidateurExpedition` et `ValidateurClient` pour la validation métier
+   - `EstimateurDelai` pour les calculs de temps de trajet
+   - `GenerateurFacture` pour la mise en forme des factures
+   - `Notificateur` pour la gestion des alertes client (Email & SMS)
+
+2. **Inversion des Dépendances (DIP)** :
+   - Injection par constructeur des interfaces de stockage (`ClientRepository`, `ExpeditionRepository`) et de notification (`ServiceEmail`, `ServiceSms`).
+   - Élimination des singletons statiques et couplages durs.
+
+3. **Patron Strategy (OCP)** :
+   - Tarification de base encapsulée dans l'interface `TarifTransport` (`TarifRoute`, `TarifRail`, `TarifMer`, `TarifAir`, `TarifFluvial`).
+   - Politiques de remise interchangeables via `PolitiqueRemise` (`RemiseParticulier`, `RemiseEntreprise`, `RemisePremium`).
+
+4. **Patron Decorator (OCP)** :
+   - Chaîne dynamique de suppléments tarifaires (`SupplementFragile`, `SupplementDangereux`, `SupplementRefrigere`, `SupplementUrgence`, `DecorateurAssurance`, `SupplementHorsGabarit`) composable par `AssembleurCalculateurPrix`.
+
+5. **LSP & ISP sur les véhicules** :
+   - Suppression des méthodes non supportées au profit d'un contrat ciblé `peutPrendreEnCharge(colis, mode)` et `partir()`.
+
+### Exécution des tests
+
+```bash
+mvn clean test
+```
+*82 tests passants (68 tests d'acceptation du contrat + 14 tests unitaires des stratégies, décorateurs et extensions).*
